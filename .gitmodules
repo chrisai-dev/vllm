@@ -1,0 +1,3 @@
+[submodule "llm-vscode-inference-server"]
+	path = llm-vscode-inference-server
+	url = https://github.com/wangcx18/llm-vscode-inference-server
