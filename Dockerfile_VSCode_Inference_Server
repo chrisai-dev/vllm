@@ -31,7 +31,12 @@ COPY pyproject.toml pyproject.toml
 COPY vllm/__init__.py vllm/__init__.py
 
 # max jobs used by Ninja to build extensions
-ENV MAX_JOBS=$max_jobs
+ENV MAX_JOBS=4
+
+# number of threads used by nvcc
+ARG nvcc_threads=2
+ENV NVCC_THREADS=$nvcc_threads
+
 RUN python3 setup.py build_ext --inplace
 
 # image to run unit testing suite
@@ -42,16 +47,18 @@ FROM dev AS test
 COPY --from=build /workspace/vllm/*.so /workspace/vllm/
 COPY tests tests
 COPY vllm vllm
-COPY llm-vscode-inference-server llm-vscode-inference-server
 
 # downloading model
-RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.rpm.sh | bash
-RUN yum install git-lfs -y
+RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
+RUN apt-get install git-lfs -y
 RUN git lfs install
 
 # currently one one I've tested
-RUN git clone https://huggingface.co/TheBloke/CodeLlama-7B-Python-AWQ /app/model
+RUN git clone https://huggingface.co/TheBloke/CodeLlama-7B-Python-AWQ model
 
-EXPOSE 8000
-ENTRYPOINT ["python", "/app/llm-vscode-inference-server/api_server.py", "--trust-remote-code", "--model", "/app/model", "--quantization", "awq"]
+COPY llm-vscode-inference-server/api_server.py api_server.py
+
+# EXPOSE 8000
+ENTRYPOINT ["python3", "/workspace/api_server.py", "--trust-remote-code", "--model", "/workspace/model", "--quantization", "awq", "--dtype", "half", "--max-model-len", "4096", "--max-num-batched-tokens", "4096"]
+# CMD ["/bin/sh"]
 

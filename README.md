@@ -1,5 +1,5 @@
 ## This is a repo for creating a docker image to serve the llm-vscode-inference-server api made by @wangcx18
-
+## the image will build on 32gb ram, and the model will run on 8GB vram
 
 ## Prerequisites:
 ### Having docker installed with nvidia support.
@@ -14,6 +14,11 @@ https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install
 ```
 git clone https://github.com/chrisai-dev/vllm --recursive
 docker build -t vscode_inference_server -f Dockerfile_VSCode_Inference_Server .
+```
+
+## Running the image:
+```
+docker run --runtime=nvidia -net=host vscode_inference_server
 ```
 
 
